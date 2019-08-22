@@ -20,7 +20,7 @@ def create_dict(generateNum):
     db = connect_db()
     cursor = db.cursor()
 
-    # 先暫時用 東森新聞 作為語料庫建立
+    # 先暫時用 聯合新聞 作為語料庫建立
     query = " SELECT news_content" \
             " FROM udn_table" \
             " LIMIT 50";
