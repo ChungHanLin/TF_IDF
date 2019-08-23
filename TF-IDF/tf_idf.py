@@ -45,17 +45,18 @@ def main():
         運用向量化方式記錄每個詞在文檔中的出現次數，記錄方式如下：
         [[(0, 1), (1, 3), (4, 5), ...], [(0, 2), (2, 8), (7, 9), ...], ...]
         表示第一個文本 id 為 0 的詞出現 1 次，id 為 1 的出現 3 次。同樣 id 為 0 的詞彙出現在文本 2 出現了 2 次。
-        依此類推，最後再將對照組進入 list['文本_num'] 進行餘弦相似度對比，可得出相似度結果。 
+        依此類推，可計算出每個詞的 TFIDF 值，
+        再依照想取的 dimension 將分數高的幾個詞進行餘弦相似度運算，即可得出相似度結果。
     '''
 
-    # 屆時會讀取所有新聞內容
+    # 屆時會連結資料庫讀取所有新聞內容
     # 文本內容 1
     text1 = "2019年世界羽球錦標賽正在瑞士巴塞爾進行中，前世界球后戴資穎順利晉級16強，" \
             "22日則是要對上南韓金佳恩，最終戴資穎以直落二（24：22、24：22）擊敗金佳恩，" \
             "首局更是化解對手4個局點、第二局也化解2個局點，成功晉級8強。本屆大會第二種子戴資穎的戴資穎" \
             "首戰以直落二輕取印尼小將菲特里亞尼（Fitriani Fitriani）後，16強賽將要交手世界排名29的金佳恩，" \
-            "持續奪牌之路邁進，只要能夠打進四強，積分就能超過山口茜，若能一舉奪冠更可以重返球后寶座。戴資穎和金佳恩過去未曾交手" \
-            "。本次交手第一局雙方1平，金佳恩挑戰成功，戴資穎1：4落後，戴資穎回球不及，金佳恩挑後場，" \
+            "持續奪牌之路邁進，只要能夠打進四強，積分就能超過山口茜，若能一舉奪冠更可以重返球后寶座。戴資穎和金佳恩過去未曾交手。" \
+            "本次交手第一局雙方1平，金佳恩挑戰成功，戴資穎1：4落後，戴資穎回球不及，金佳恩挑後場，" \
             "戴資穎回擊出界6分落後，金佳恩、戴資穎都出現掛網，金佳恩發球出界，戴資穎勾對角連要3分，" \
             "金佳恩斜線進攻，戴資穎7：11落後。30拍來回後，金佳恩大對角攻擊，戴資穎搶網挑後場8：12，" \
             "金佳恩挑戰成功，戴資穎出界、反應不及6分落後，金佳恩連續掛網，戴資穎殺球追至15：18，金" \
@@ -88,7 +89,7 @@ def main():
     text_num = 0    # 讀取文檔數
     wordCount = 0   # 單一文章詞彙數量
 
-    # 兩篇文章比對的 TF_IDF dictionary
+    # 兩篇文章比對的 TF_IDF list
     TF_IDF_1 = []
     TF_IDF_2 = []
 
@@ -101,11 +102,13 @@ def main():
             segments = jieba.cut(text2, cut_all=False)
 
         # 記錄該文檔向量化結果
+        # <!!!> 理應要再判斷該資料庫文章是否被爬取過
+        # if not 才加入
         corpus.append([])
 
         # 暫時統計該文檔結果
         tmp_corpus = {}
-
+        wordCount = 0
         # 將新詞輸入 dict && 記錄 資料表
         for k in list(filter(lambda a: a not in stopWords and a != '\n', segments)):
             if k in dictionary:
@@ -170,7 +173,7 @@ def calculate_TF_IDF(corpus, corpusCnt, wordInFileNum, fileNum, dictionary):
     TF_IDF = [(k, TF_IDF[k]) for k in sorted(TF_IDF, key=TF_IDF.get, reverse=True)]
 
     # 取值維度
-    dimension = 100
+    dimension = 50
     top_dimension_tfidf = []
     dimensionCnt = 0
     for index in TF_IDF:
@@ -194,7 +197,7 @@ def calculate_Similarity(TF_IDF_1, TF_IDF_2):
     index_2_powerSum = 0
     index_1 = 0
     index_2 = 0
-    dimension = 100
+    dimension = 50
     while 1:
         if index_1 < dimension and index_2 < dimension:
             if TF_IDF_1[index_1][0] > TF_IDF_2[index_2][0]:
