@@ -4,6 +4,7 @@
 
 import mysql.connector
 from ckip import CkipSegmenter
+import jieba
 import pickle
 import chardet
 
@@ -20,7 +21,7 @@ def create_dict(generateNum):
     db = connect_db()
     cursor = db.cursor()
 
-    # 先暫時用 聯合新聞 作為語料庫建立
+    # 先暫時用 東森新聞 作為語料庫建立
     query = " SELECT news_content" \
             " FROM udn_table" \
             " LIMIT 50";
@@ -42,9 +43,11 @@ def create_dict(generateNum):
             stopWords.append(data)
 
     for single_content in results:
-        #single_content[0].encode('utf-8')
-        segmenter = CkipSegmenter()
-        segments = segmenter.seg(single_content[0])
+        print(single_content[0])
+        single_content[0].encode('utf-8')
+        # segmenter = CkipSegmenter()
+        # segments = segmenter.seg(single_content[0])
+        segments = jieba.cut(single_content[0])
 
         # 記錄該文檔向量化結果
         corpus.append([])
@@ -53,7 +56,7 @@ def create_dict(generateNum):
         tmp_corpus = {}
 
         # 將新詞輸入 dict && 記錄 資料表
-        for k in list(filter(lambda a: a not in stopWords and a != '\n', segments.tok)):
+        for k in list(filter(lambda a: a not in stopWords and a != '\n', segments)):
             if text_num == 0 and wordCount == 0:
                 dictionary[k] = 1
                 wordInFileNum[dictionary[k]] = 1
